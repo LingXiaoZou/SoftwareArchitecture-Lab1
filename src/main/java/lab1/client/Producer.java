@@ -8,10 +8,13 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
-public class producer {
+public class Producer {
+    /**
+     * 发送消息
+     */
     private final String name;
 
-    public producer(String name){
+    public Producer(String name){
         this.name = name;
     }
 
@@ -29,6 +32,7 @@ public class producer {
             String jsonMsg = JsonUtil.serializeMessage(msg);
             // 发送
             out.println(jsonMsg);
+            System.out.println(name + " send msg:" + sendMode + "," + dataType + "," + message);
             out.flush();
 
         }
