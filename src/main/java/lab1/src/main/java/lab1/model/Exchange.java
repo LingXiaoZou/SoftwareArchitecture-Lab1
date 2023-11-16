@@ -1,17 +1,19 @@
 package lab1.model;
 
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Exchange {
     private String name;
     private String type;
     private Map<String, Queue> bindings;
 
-    public Exchange(String name, String type, Map<String, Queue> bindings) {
+    public Exchange(String name, String type) {
         this.name = name;
         this.type = type;
-        this.bindings = bindings;
+        this.bindings = new ConcurrentHashMap<String, Queue>();
     }
 
     public String getName() {
@@ -31,16 +33,17 @@ public class Exchange {
     }
 
     // 路由，根据路由信息将消息送入正确的队列
-    public void routeMessage(Message message, String type){
-        switch (type) {
+    public void routeMessage(Message message){
+        String mode = message.getSendMode();
+        switch (mode) {
             case "Broadcast":
-                // Direct routing logic
+
                 break;
             case "P2P":
-                // Topic routing logic
+
                 break;
             case "Subscribe":
-                // Fan-out routing logic
+
                 break;
             // ... other types
         }

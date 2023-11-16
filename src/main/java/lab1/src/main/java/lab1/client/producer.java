@@ -1,5 +1,6 @@
 package lab1.client;
 
+import lab1.Util.JsonUtil;
 import lab1.config.config;
 import lab1.model.Message;
 
@@ -18,12 +19,18 @@ public class producer {
         return this.name;
     }
 
-    public void send(String type, String message) throws Exception {
+    public void send(String sendMode, String dataType, String message) throws Exception {
+        // socket
         Socket socket = new Socket(InetAddress.getLocalHost(), config.SERVICE_PORT);
+
         try(PrintWriter out = new PrintWriter((socket.getOutputStream()))) {
-            Message msg = new Message(this.getName(), type, message);
-            out.println("PUBLISH" + '\t' + msg.toString());
+            Message msg = new Message(this.getName(), sendMode, dataType, message);
+            // JSON 序列化
+            String jsonMsg = JsonUtil.serializeMessage(msg);
+            // 发送
+            out.println(jsonMsg);
             out.flush();
+
         }
     }
 }
