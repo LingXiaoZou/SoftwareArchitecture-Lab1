@@ -22,17 +22,17 @@ public class Producer {
         return this.name;
     }
 
-    public void send(String sendMode, String queueKey, String message) throws Exception {
+    public void send(String sendMode, String routingKey, String message) throws Exception {
         // socket
         Socket socket = new Socket(InetAddress.getLocalHost(), config.SERVICE_PORT);
 
         try(PrintWriter out = new PrintWriter((socket.getOutputStream()))) {
-            Message msg = new Message(this.getName(), sendMode, queueKey, message);
+            Message msg = new Message(this.getName(), sendMode, routingKey, message);
             // JSON 序列化
             String jsonMsg = JsonUtil.serializeMessage(msg);
             // 发送
             out.println(jsonMsg);
-            System.out.println(name + " send msg:" + sendMode + "," + queueKey + "," + message);
+            System.out.println(name + " send msg:" + sendMode + "," + routingKey + "," + message);
             out.flush();
 
         }

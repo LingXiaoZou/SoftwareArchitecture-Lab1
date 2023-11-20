@@ -29,8 +29,7 @@ public class Exchange {
 
     /**
      * 根据路由信息以及发布模式将消息送入正确的队列
-     * 模式包括：广播fanout，点对点direct，订阅模式subscribe，默认为subscribe
-     * @param message
+     * 模式包括：广播fanout，点对点P2P，订阅模式subscribe，默认为subscribe
      */
     public void routeMessage(Message message){
         String type = message.getQueueKey();
@@ -52,7 +51,7 @@ public class Exchange {
                 BlockingQueue<Message> queue = bindings.get(type);
                 queue.put(message);
             } catch (InterruptedException e) {
-                System.out.println("Exchange.routeMessage.direct/sub error\n");
+                System.out.println("Exchange.routeMessage.P2P/sub error\n");
             }
         }
 

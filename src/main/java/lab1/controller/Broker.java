@@ -8,14 +8,13 @@ import java.io.*;
 import java.net.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.*;
 
 public class Broker {
     // 队列
     private Map<String, BlockingQueue<Message>> queues;
 
-    // 保存Broker的serverSocket
-    private ServerSocket serverSocket;
     // 线程池
     private ExecutorService executor;
     // 订阅者信息 String是订阅的消息type
@@ -58,23 +57,23 @@ public class Broker {
 
     /**
      * subscribe函数
-     * @param queueKey 队列标识符
+     * @param routingKey 队列标识符
      * @param subscriberAddress 用户的Socket地址
      * 完成订阅新用户的功能
      */
     // 订阅新用户
-    public void subscribe(String queueKey, InetSocketAddress subscriberAddress) {
-        BlockingQueue<Message> queue = exchange.getBindings().get(queueKey);
+    public void subscribe(String routingKey, InetSocketAddress subscriberAddress) {
+        BlockingQueue<Message> queue = exchange.getBindings().get(routingKey);
 
         if (queue == null) {
             // 如果队列不存在，创建并绑定新队列
-            queue = new LinkedBlockingQueue<Message>();
-            exchange.bind(queue, queueKey);
-            System.out.println("Subscribe add new queue: "+ queueKey);
+            queue = new LinkedBlockingQueue<>();
+            exchange.bind(queue, routingKey);
+            System.out.println("Subscribe add new queue: "+ routingKey);
         }
 
         // 将订阅者地址添加到subscribers映射中
-        subscribers.computeIfAbsent(queueKey, k -> new CopyOnWriteArrayList<>()).add(subscriberAddress);
+        subscribers.computeIfAbsent(routingKey, k -> new CopyOnWriteArrayList<>()).add(subscriberAddress);
     }
 
     // 取消订阅
@@ -91,7 +90,8 @@ public class Broker {
     private void listenForProducers() throws IOException {
         // 监听来自Producer的连接
         // 对每个连接创建一个新线程来处理消息入队
-        serverSocket = new ServerSocket(8000);
+        // 保存Broker的serverSocket
+        ServerSocket serverSocket = new ServerSocket(8000);
 
         while(true){
             // 以下是获取message信息以及开启线程处理
@@ -152,7 +152,7 @@ class ProducerHandler implements Runnable {
 
         if (queue == null) {
             // 如果队列不存在，创建并绑定新队列
-            queue = new LinkedBlockingQueue<Message>();
+            queue = new LinkedBlockingQueue<>();
             exchange.bind(queue, dataType);
         }
 
@@ -194,12 +194,20 @@ class MessageDispatcher implements Runnable {
         String mode = message.getSendMode();
 
         if (subscriberAddresses != null) {
+            if (mode.equals("P2P")){
+                Random random = new Random();
+                int randomIndex = random.nextInt(subscriberAddresses.size());
+
+                // 获取随机的InetSocketAddress对象
+                InetSocketAddress randomSubscriber = subscriberAddresses.get(randomIndex);
+                sendMessageToSubscriber("From: " + message.getName()+ "\n" + message.getData(), randomSubscriber);
+
+                return;
+            }
+
             for (InetSocketAddress address : subscriberAddresses) {
                 //检查“订阅”者
-                //TODO：修改逻辑，现在是对第一个订阅的发消息
                 sendMessageToSubscriber("From: " + message.getName()+ "\n" + message.getData(), address);
-                if (mode.equals("direct"))
-                    return;
             }
         }
     }

@@ -7,8 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @SpringBootTest
 class Lab1ApplicationTests {
@@ -54,10 +52,9 @@ class Lab1ApplicationTests {
 
     /**
      * 测试点对点
-     * @throws IOException
      */
     @Test
-    void TestDirect() throws Exception {
+    void TestP2P() throws Exception {
         //消费者1
         Consumer cons1 = new Consumer("cons1");
         Thread thread1 = new Thread(cons1);
@@ -80,7 +77,7 @@ class Lab1ApplicationTests {
 
         Thread.sleep(500);
         //生产者产生消息
-        prod1.send("direct", "queue1", "test msg\n");
+        prod1.send("P2P", "queue1", "test p2p\n");
 
         thread1.interrupt();
         thread2.interrupt();
@@ -107,14 +104,14 @@ class Lab1ApplicationTests {
         Thread.sleep(500);
         //中间件
         Broker broker = new Broker();
-        broker.subscribe("queue1", cons1.getSocketAddress());
-        broker.subscribe("queue1", cons2.getSocketAddress());
+        broker.subscribe("", cons1.getSocketAddress());
+        broker.subscribe("", cons2.getSocketAddress());
         broker.start();
 
         Thread.sleep(500);
         //生产者产生消息
         //这里没有指定队列，依旧可以接收
-        prod1.send("fanout", "", "test msg\n");
+        prod1.send("fanout", "", "test fanout\n");
 
         thread1.interrupt();
         thread2.interrupt();
@@ -124,7 +121,7 @@ class Lab1ApplicationTests {
      * 测试发布/订阅模式
      */
     @Test
-    void TestPubsub() throws Exception {
+    void TestPubSub() throws Exception {
         //消费者1
         Consumer cons1 = new Consumer("cons1");
         Thread thread1 = new Thread(cons1);
@@ -135,6 +132,11 @@ class Lab1ApplicationTests {
         Thread thread2 = new Thread(cons2);
         thread2.start();
 
+        //消费者3
+        Consumer cons3 = new Consumer("cons3");
+        Thread thread3 = new Thread(cons3);
+        thread3.start();
+
         //生产者1
         Producer prod1 = new Producer("prod1");
 
@@ -142,12 +144,13 @@ class Lab1ApplicationTests {
         //中间件
         Broker broker = new Broker();
         broker.subscribe("queue1", cons1.getSocketAddress());
-        broker.subscribe("queue2", cons2.getSocketAddress());
+        broker.subscribe("queue1", cons2.getSocketAddress());
+        broker.subscribe("queue2", cons3.getSocketAddress());
         broker.start();
 
         Thread.sleep(500);
         //生产者产生消息
-        prod1.send("fanout", "queue1", "test msg\n");
+        prod1.send("PubSub", "queue1", "test pubsub\n");
 
         thread1.interrupt();
         thread2.interrupt();
