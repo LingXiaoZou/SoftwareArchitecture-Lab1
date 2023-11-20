@@ -1,9 +1,6 @@
 package lab1.controller;
 
-import ch.qos.logback.core.net.server.ServerRunner;
 import lab1.Util.JsonUtil;
-import lab1.client.Consumer;
-import lab1.config.config;
 import lab1.model.Exchange;
 import lab1.model.Message;
 
@@ -61,23 +58,23 @@ public class Broker {
 
     /**
      * subscribe函数
-     * @param messageKey 用户订阅的消息类型
+     * @param queueKey 队列标识符
      * @param subscriberAddress 用户的Socket地址
      * 完成订阅新用户的功能
      */
     // 订阅新用户
-    public void subscribe(String messageKey, InetSocketAddress subscriberAddress) {
-        BlockingQueue<Message> queue = exchange.getBindings().get(messageKey);
+    public void subscribe(String queueKey, InetSocketAddress subscriberAddress) {
+        BlockingQueue<Message> queue = exchange.getBindings().get(queueKey);
 
         if (queue == null) {
             // 如果队列不存在，创建并绑定新队列
             queue = new LinkedBlockingQueue<Message>();
-            exchange.bind(queue, messageKey);
-            System.out.println("Subscribe add new queue: "+ messageKey);
+            exchange.bind(queue, queueKey);
+            System.out.println("Subscribe add new queue: "+ queueKey);
         }
 
         // 将订阅者地址添加到subscribers映射中
-        subscribers.computeIfAbsent(messageKey, k -> new CopyOnWriteArrayList<>()).add(subscriberAddress);
+        subscribers.computeIfAbsent(queueKey, k -> new CopyOnWriteArrayList<>()).add(subscriberAddress);
     }
 
     // 取消订阅
@@ -150,7 +147,7 @@ class ProducerHandler implements Runnable {
 
     public void run() {
         // 检查是否存在对应 dataType 的队列
-        String dataType = message.getDataType();
+        String dataType = message.getQueueKey();
         BlockingQueue<Message> queue = exchange.getBindings().get(dataType);
 
         if (queue == null) {
@@ -198,6 +195,8 @@ class MessageDispatcher implements Runnable {
 
         if (subscriberAddresses != null) {
             for (InetSocketAddress address : subscriberAddresses) {
+                //检查“订阅”者
+                //TODO：修改逻辑，现在是对第一个订阅的发消息
                 sendMessageToSubscriber("From: " + message.getName()+ "\n" + message.getData(), address);
                 if (mode.equals("direct"))
                     return;

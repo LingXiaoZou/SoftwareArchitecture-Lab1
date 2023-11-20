@@ -1,8 +1,6 @@
 package lab1.model;
 
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,7 +33,7 @@ public class Exchange {
      * @param message
      */
     public void routeMessage(Message message){
-        String type = message.getDataType();
+        String type = message.getQueueKey();
         String mode = message.getSendMode();
 
         if( mode.equals("fanout")) {
