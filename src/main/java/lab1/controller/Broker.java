@@ -31,7 +31,7 @@ public class Broker {
         queues = new ConcurrentHashMap<>();
         subscribers = new ConcurrentHashMap<>();
         executor = Executors.newCachedThreadPool();
-        exchange = new Exchange("x", "0", (ConcurrentHashMap<String, BlockingQueue<Message>>) queues);
+        exchange = new Exchange("x", (ConcurrentHashMap<String, BlockingQueue<Message>>) queues);
     }
 
     /**
@@ -61,23 +61,23 @@ public class Broker {
 
     /**
      * subscribe函数
-     * @param messageType 用户订阅的消息类型
+     * @param messageKey 用户订阅的消息类型
      * @param subscriberAddress 用户的Socket地址
      * 完成订阅新用户的功能
      */
     // 订阅新用户
-    public void subscribe(String messageType, InetSocketAddress subscriberAddress) {
-        BlockingQueue<Message> queue = exchange.getBindings().get(messageType);
+    public void subscribe(String messageKey, InetSocketAddress subscriberAddress) {
+        BlockingQueue<Message> queue = exchange.getBindings().get(messageKey);
 
         if (queue == null) {
             // 如果队列不存在，创建并绑定新队列
             queue = new LinkedBlockingQueue<Message>();
-            exchange.bind(queue, messageType);
-            System.out.println("Subscribe add new queue: "+ messageType);
+            exchange.bind(queue, messageKey);
+            System.out.println("Subscribe add new queue: "+ messageKey);
         }
 
         // 将订阅者地址添加到subscribers映射中
-        subscribers.computeIfAbsent(messageType, k -> new CopyOnWriteArrayList<>()).add(subscriberAddress);
+        subscribers.computeIfAbsent(messageKey, k -> new CopyOnWriteArrayList<>()).add(subscriberAddress);
     }
 
     // 取消订阅
@@ -90,7 +90,6 @@ public class Broker {
 
     /**
      * 监听来自Producer的信息，并且对每一个消息创建新线程指定ProduceHandler函数
-     * @throws IOException
      */
     private void listenForProducers() throws IOException {
         // 监听来自Producer的连接
