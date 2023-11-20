@@ -14,7 +14,6 @@ import java.util.concurrent.*;
 public class Broker {
     // 队列
     private Map<String, BlockingQueue<Message>> queues;
-
     // 线程池
     private ExecutorService executor;
     // 订阅者信息 String是订阅的消息type
@@ -47,12 +46,23 @@ public class Broker {
         Thread producerListenerThread = new Thread(() -> {
             try {
                 listenForProducers(); // 尝试运行listenForProducers方法
+
             } catch (IOException e) {
                 e.printStackTrace(); // 打印异常信息
                 // 还可以添加更多的异常处理逻辑
             }
         });
         producerListenerThread.start();
+
+        Thread consumerListenerThread = new Thread(() -> {
+            try {
+                listenForConsumer(); //
+            } catch (IOException e) {
+                e.printStackTrace(); // 打印异常信息
+                // 还可以添加更多的异常处理逻辑
+            }
+        });
+        consumerListenerThread.start();
     }
 
     /**
@@ -83,7 +93,39 @@ public class Broker {
             subscriberAddresses.remove(subscriberAddress);
         }
     }
+    private void listenForConsumer() throws IOException {
+        ServerSocket serverSocket = new ServerSocket(9000);
+        while(true){
+            // 以下是获取message信息以及开启线程处理
+            Socket socket = serverSocket.accept();
+            try (InputStream in = socket.getInputStream();
+                 InputStreamReader isr = new InputStreamReader(in);
+                 BufferedReader br = new BufferedReader(isr)) {
 
+                StringBuilder receivedData = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    receivedData.append(line);
+                }
+
+                String json = receivedData.toString();
+                // 反序列化得到Message
+                Message message = JsonUtil.deserializeMessage(json);
+
+                InetSocketAddress restoredAddress = InetSocketAddress.createUnresolved(
+                        message.getData().substring(1), // 去掉字符串开始的"/"
+                        Integer.parseInt(message.getData().substring(message.getData().lastIndexOf(":") + 1))
+                );
+
+                System.out.println("Broker received subscription form "+ restoredAddress +" to " + message.getRoutingKey());
+                subscribe(message.getRoutingKey(), restoredAddress);
+                executor.submit(new ProducerHandler(message, this.exchange));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
     /**
      * 监听来自Producer的信息，并且对每一个消息创建新线程指定ProduceHandler函数
      */
@@ -147,7 +189,7 @@ class ProducerHandler implements Runnable {
 
     public void run() {
         // 检查是否存在对应 dataType 的队列
-        String dataType = message.getQueueKey();
+        String dataType = message.getRoutingKey();
         BlockingQueue<Message> queue = exchange.getBindings().get(dataType);
 
         if (queue == null) {

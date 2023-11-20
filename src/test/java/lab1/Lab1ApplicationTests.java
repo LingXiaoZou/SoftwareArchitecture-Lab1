@@ -6,8 +6,6 @@ import lab1.controller.Broker;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.IOException;
-
 @SpringBootTest
 class Lab1ApplicationTests {
 
@@ -71,9 +69,13 @@ class Lab1ApplicationTests {
         Thread.sleep(500);
         //中间件
         Broker broker = new Broker();
-        broker.subscribe("queue1", cons1.getSocketAddress());
-        broker.subscribe("queue1", cons2.getSocketAddress());
         broker.start();
+        //订阅
+        cons1.subscribe("queue1");
+        cons2.subscribe("queue1");
+//        broker.subscribe("queue1", cons1.getSocketAddress());
+//        broker.subscribe("queue1", cons2.getSocketAddress());
+
 
         Thread.sleep(500);
         //生产者产生消息
@@ -104,9 +106,12 @@ class Lab1ApplicationTests {
         Thread.sleep(500);
         //中间件
         Broker broker = new Broker();
-        broker.subscribe("", cons1.getSocketAddress());
-        broker.subscribe("", cons2.getSocketAddress());
+//        broker.subscribe("", cons1.getSocketAddress());
+//        broker.subscribe("", cons2.getSocketAddress());
         broker.start();
+        //订阅
+        cons1.subscribe("");
+        cons2.subscribe("");
 
         Thread.sleep(500);
         //生产者产生消息
@@ -143,10 +148,14 @@ class Lab1ApplicationTests {
         Thread.sleep(500);
         //中间件
         Broker broker = new Broker();
-        broker.subscribe("queue1", cons1.getSocketAddress());
-        broker.subscribe("queue1", cons2.getSocketAddress());
-        broker.subscribe("queue2", cons3.getSocketAddress());
+//        broker.subscribe("queue1", cons1.getSocketAddress());
+//        broker.subscribe("queue1", cons2.getSocketAddress());
+//        broker.subscribe("queue2", cons3.getSocketAddress());
         broker.start();
+        //订阅
+        cons1.subscribe("queue1");
+        cons1.subscribe("queue1");
+        cons1.subscribe("queue2");
 
         Thread.sleep(500);
         //生产者产生消息

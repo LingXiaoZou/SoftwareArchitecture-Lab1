@@ -32,7 +32,7 @@ public class Exchange {
      * 模式包括：广播fanout，点对点P2P，订阅模式subscribe，默认为subscribe
      */
     public void routeMessage(Message message){
-        String type = message.getQueueKey();
+        String type = message.getRoutingKey();
         String mode = message.getSendMode();
 
         if( mode.equals("fanout")) {

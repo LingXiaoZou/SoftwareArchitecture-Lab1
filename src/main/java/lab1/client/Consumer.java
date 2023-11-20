@@ -5,11 +5,9 @@ import lab1.config.config;
 import lab1.model.Message;
 
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 
-public class Consumer implements Runnable{
+public class Consumer implements Runnable {
     /**
      * 启动即监听信息
      */
@@ -20,6 +18,7 @@ public class Consumer implements Runnable{
     public Consumer(String name) throws IOException {
         this.name = name;
     }
+
     @Override
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(0)) {
@@ -52,8 +51,29 @@ public class Consumer implements Runnable{
         }
     }
 
-    public InetSocketAddress getSocketAddress(){
+    public InetSocketAddress getSocketAddress() {
         return new InetSocketAddress(config.LOCAL_HOST, PORT);
+    }
+
+    /**
+     * 发起订阅
+     * @param routingKey
+     */
+    public void subscribe(String routingKey) throws IOException {
+        // socket
+        Socket socket = new Socket(InetAddress.getLocalHost(), config.CONSUMER_PORT);
+
+        try (PrintWriter out = new PrintWriter((socket.getOutputStream()))) {
+            //将地址封装在Message数据字段
+            Message msg = new Message("subscribe", "", routingKey, this.getSocketAddress().toString());
+            // JSON 序列化
+            String jsonMsg = JsonUtil.serializeMessage(msg);
+            // 发送
+            out.println(jsonMsg);
+            System.out.println(name + " subscribe " + routingKey);
+            out.flush();
+
+        }
     }
 }
 
