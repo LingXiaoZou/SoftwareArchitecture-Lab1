@@ -8,21 +8,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Exchange {
     private String name;
-    private String type;
     private Map<String, BlockingQueue<Message>> bindings;
 
-    public Exchange(String name, String type, ConcurrentHashMap<String, BlockingQueue<Message>> bindings) {
+    public Exchange(String name, ConcurrentHashMap<String, BlockingQueue<Message>> bindings) {
         this.name = name;
-        this.type = type;
         this.bindings = bindings;
     }
 
     public String getName() {
         return name;
-    }
-
-    public String getType() {
-        return type;
     }
 
     public Map<String, BlockingQueue<Message>> getBindings() {
