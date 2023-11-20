@@ -1,7 +1,7 @@
 package lab1.client;
 
 import lab1.Util.JsonUtil;
-import lab1.config.config;
+import lab1.config.Config;
 import lab1.model.Message;
 
 import java.io.*;
@@ -52,7 +52,7 @@ public class Consumer implements Runnable {
     }
 
     public InetSocketAddress getSocketAddress() {
-        return new InetSocketAddress(config.LOCAL_HOST, PORT);
+        return new InetSocketAddress(Config.LOCAL_HOST, PORT);
     }
 
     /**
@@ -61,7 +61,7 @@ public class Consumer implements Runnable {
      */
     public void subscribe(String routingKey) throws IOException {
         // socket
-        Socket socket = new Socket(InetAddress.getLocalHost(), config.CONSUMER_PORT);
+        Socket socket = new Socket(InetAddress.getLocalHost(), Config.CONSUMER_PORT);
 
         try (PrintWriter out = new PrintWriter((socket.getOutputStream()))) {
             //将地址封装在Message数据字段

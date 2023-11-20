@@ -1,6 +1,6 @@
 package lab1.config;
 
-public class config {
+public class Config {
 
     public static final int SERVICE_PORT = 8000;
     public static final int CONSUMER_PORT = 9000;

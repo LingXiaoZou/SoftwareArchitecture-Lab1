@@ -1,7 +1,7 @@
 package lab1.client;
 
 import lab1.Util.JsonUtil;
-import lab1.config.config;
+import lab1.config.Config;
 import lab1.model.Message;
 
 import java.io.PrintWriter;
@@ -24,7 +24,7 @@ public class Producer {
 
     public void send(String sendMode, String routingKey, String message) throws Exception {
         // socket
-        Socket socket = new Socket(InetAddress.getLocalHost(), config.SERVICE_PORT);
+        Socket socket = new Socket(InetAddress.getLocalHost(), Config.SERVICE_PORT);
 
         try(PrintWriter out = new PrintWriter((socket.getOutputStream()))) {
             Message msg = new Message(this.getName(), sendMode, routingKey, message);
