@@ -65,7 +65,7 @@ public class Consumer implements Runnable {
 
         try (PrintWriter out = new PrintWriter((socket.getOutputStream()))) {
             //将地址封装在Message数据字段
-            Message msg = new Message("subscribe", "", routingKey, this.getSocketAddress().toString());
+            Message msg = new Message(name, "", routingKey, this.getSocketAddress().toString());
             // JSON 序列化
             String jsonMsg = JsonUtil.serializeMessage(msg);
             // 发送

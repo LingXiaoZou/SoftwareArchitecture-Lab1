@@ -107,17 +107,14 @@ public class Broker {
                 while ((line = br.readLine()) != null) {
                     receivedData.append(line);
                 }
-
                 String json = receivedData.toString();
                 // 反序列化得到Message
                 Message message = JsonUtil.deserializeMessage(json);
-
                 InetSocketAddress restoredAddress = InetSocketAddress.createUnresolved(
                         message.getData().substring(1), // 去掉字符串开始的"/"
                         Integer.parseInt(message.getData().substring(message.getData().lastIndexOf(":") + 1))
                 );
-
-                System.out.println("Broker received subscription form "+ restoredAddress +" to " + message.getRoutingKey());
+                System.out.println("Broker received subscription form "+ message.getName() +" to " + message.getRoutingKey());
                 subscribe(message.getRoutingKey(), restoredAddress);
                 executor.submit(new ProducerHandler(message, this.exchange));
             } catch (IOException e) {
@@ -141,19 +138,15 @@ public class Broker {
             try (InputStream in = socket.getInputStream();
                  InputStreamReader isr = new InputStreamReader(in);
                  BufferedReader br = new BufferedReader(isr)) {
-
                 StringBuilder receivedData = new StringBuilder();
                 String line;
                 while ((line = br.readLine()) != null) {
                     receivedData.append(line);
                 }
-
                 String json = receivedData.toString();
                 // 反序列化得到Message
                 Message message = JsonUtil.deserializeMessage(json);
-
                 System.out.println("Broker Received message from: " + message.getName() + "," + message.getData());
-
                 executor.submit(new ProducerHandler(message, this.exchange));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -176,7 +169,7 @@ public class Broker {
  */
 class ProducerHandler implements Runnable {
     /**
-     * 只完成对应type队列的创建，具体路由逻辑交给exchange进行
+     * 只完成对应routingKey队列的创建，具体路由逻辑交给exchange进行
      */
     // 处理来自Producer的连接和消息
     private final Message message;
@@ -188,14 +181,14 @@ class ProducerHandler implements Runnable {
     }
 
     public void run() {
-        // 检查是否存在对应 dataType 的队列
-        String dataType = message.getRoutingKey();
-        BlockingQueue<Message> queue = exchange.getBindings().get(dataType);
+        // 检查是否存在对应 routingKey 的队列
+        String routingKey = message.getRoutingKey();
+        BlockingQueue<Message> queue = exchange.getBindings().get(routingKey);
 
         if (queue == null) {
             // 如果队列不存在，创建并绑定新队列
             queue = new LinkedBlockingQueue<>();
-            exchange.bind(queue, dataType);
+            exchange.bind(queue, routingKey);
         }
 
         // 将消息传递给 Exchange 进行处理
