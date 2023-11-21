@@ -14,6 +14,11 @@ public class Consumer implements Runnable {
     private String name;
 
     private Integer PORT;
+    private Integer messageNum = 0;
+
+    public Integer getMessageNum() {
+        return messageNum;
+    }
 
     public Consumer(String name) throws IOException {
         this.name = name;
@@ -40,6 +45,7 @@ public class Consumer implements Runnable {
 
                     // 这里处理接收到的消息
                     System.out.println(name + " received message: " + data);
+                    messageNum ++;
                 } catch (IOException e) {
                     System.out.println(name + " Error reading message: " + e.getMessage());
                     // Optionally continue to the next iteration after logging the error
@@ -75,5 +81,6 @@ public class Consumer implements Runnable {
 
         }
     }
+
 }
 
