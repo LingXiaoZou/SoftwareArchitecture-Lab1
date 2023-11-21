@@ -110,8 +110,9 @@ class Lab1ApplicationTests {
 //        broker.subscribe("", cons2.getSocketAddress());
         broker.start();
         //订阅
-        cons1.subscribe("");
-        cons2.subscribe("");
+        cons1.subscribe("red");
+        System.out.println("正确的socketAddress："+cons1.getSocketAddress());
+        cons2.subscribe("green");
 
         Thread.sleep(500);
         //生产者产生消息

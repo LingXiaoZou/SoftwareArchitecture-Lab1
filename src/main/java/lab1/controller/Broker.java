@@ -96,7 +96,7 @@ public class Broker {
     private void listenForConsumer() throws IOException {
         ServerSocket serverSocket = new ServerSocket(9000);
         while(true){
-            // 以下是获取message信息以及开启线程处理
+            // 以下是获取message信息
             Socket socket = serverSocket.accept();
             try (InputStream in = socket.getInputStream();
                  InputStreamReader isr = new InputStreamReader(in);
@@ -110,19 +110,39 @@ public class Broker {
                 String json = receivedData.toString();
                 // 反序列化得到Message
                 Message message = JsonUtil.deserializeMessage(json);
-                InetSocketAddress restoredAddress = InetSocketAddress.createUnresolved(
-                        message.getData().substring(1), // 去掉字符串开始的"/"
-                        Integer.parseInt(message.getData().substring(message.getData().lastIndexOf(":") + 1))
-                );
+                //解析得到socket address
+
+                InetSocketAddress restoredAddress = parseAddressFromString(message.getData());
+
+//                InetSocketAddress restoredAddress = InetSocketAddress.createUnresolved(
+//                        message.getData().substring(1), // 去掉字符串开始的"/"
+//                        Integer.parseInt(message.getData().substring(message.getData().lastIndexOf(":") + 1))
+//                );
                 System.out.println("Broker received subscription form "+ message.getName() +" to " + message.getRoutingKey());
+//                System.out.println("subscriberAddress is :"+restoredAddress);
+
                 subscribe(message.getRoutingKey(), restoredAddress);
-                executor.submit(new ProducerHandler(message, this.exchange));
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
         }
     }
+
+    /**
+     * 解析socket address字符串，还原为socket address
+     * @param addressString
+     * @return
+     */
+    private static InetSocketAddress parseAddressFromString(String addressString) {
+        // 假设字符串的格式是 "hostName/IP:port"
+        String[] parts = addressString.split(":");
+        String host = parts[0].substring(1); // 去掉字符串开始的 "/"
+        int port = Integer.parseInt(parts[1]);
+
+        return new InetSocketAddress(host, port);
+    }
+
     /**
      * 监听来自Producer的信息，并且对每一个消息创建新线程指定ProduceHandler函数
      */
@@ -216,6 +236,10 @@ class MessageDispatcher implements Runnable {
                 BlockingQueue<Message> queue = entry.getValue();
                 String dataType = entry.getKey();
                 Message message = queue.poll();
+
+//                System.out.println("==================\n");
+//                System.out.println(message);
+//                System.out.println("==================\n");
 
                 if (message != null) {
                     distributeMessage(dataType, message);

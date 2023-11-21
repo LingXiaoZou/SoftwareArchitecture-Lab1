@@ -64,7 +64,7 @@ public class Consumer implements Runnable {
         Socket socket = new Socket(InetAddress.getLocalHost(), Config.CONSUMER_PORT);
 
         try (PrintWriter out = new PrintWriter((socket.getOutputStream()))) {
-            //将地址封装在Message数据字段
+            //将port封装在Message数据字段
             Message msg = new Message(name, "", routingKey, this.getSocketAddress().toString());
             // JSON 序列化
             String jsonMsg = JsonUtil.serializeMessage(msg);
